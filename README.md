@@ -1,3 +1,3 @@
-# hola
+## Repositorie for optimisation procedures using F2A group fire simulator C2F 
 
-este es el repo
+The codes found here correlates to specific versions of the simulator and can be outdated. 
