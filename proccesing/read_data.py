@@ -1,6 +1,7 @@
 import networkx as nx
 import pandas as pd
 import ReadDataPrometheus
+import os
 
 def read_sims(forest_path,results_path,nsims):
 
@@ -8,7 +9,7 @@ def read_sims(forest_path,results_path,nsims):
     FBPlookup = Folder + '/fbp_lookup_table.csv'
     ForestFile = Folder + '/fuels.asc'
     IgnitionsFolder = results_path + '/IgnitionsHistory/ignitions_log.csv'
-    msg_path = results_path + '/Messages'
+    msg_path = results_path + '/Messages/'
     FBPDict, ColorsDict = ReadDataPrometheus.Dictionary(FBPlookup)
     CellsGrid3, CellsGrid4, Rows, Cols, AdjCells, CoordCells, CellSize = ReadDataPrometheus.ForestGrid(ForestFile,FBPDict)
     
@@ -33,7 +34,7 @@ def read_sims(forest_path,results_path,nsims):
     ignitions_points_aux = single_column_df.tolist()
     ignitions_points = []
     
-    cmdoutput1 = os.listdir(msg_folder)
+    cmdoutput1 = os.listdir(msg_path)
     if ".DS_Store" in cmdoutput1:
         idx = cmdoutput1.index('.DS_Store')
         del cmdoutput1[idx]
@@ -48,7 +49,7 @@ def read_sims(forest_path,results_path,nsims):
     for f in range(1, nsims+1):
         
         ignitions_points.append(ignitions_points_aux[f-1])
-        file = str(f).zfill(2) + '.csv'
+        file = 'MessagesFile' + str(f).zfill(2) + '.csv'
         H = nx.read_edgelist(path = msg_path + file,
                                 delimiter=',',
                                 create_using = nx.DiGraph(),
