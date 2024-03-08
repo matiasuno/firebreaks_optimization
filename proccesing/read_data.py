@@ -2,7 +2,7 @@ import networkx as nx
 import pandas as pd
 import ReadDataPrometheus
 
-def read_sims(forest_path,results_path,nsims,file_list):
+def read_sims(forest_path,results_path,nsims):
 
     Folder = forest_path
     FBPlookup = Folder + '/fbp_lookup_table.csv'
@@ -30,8 +30,9 @@ def read_sims(forest_path,results_path,nsims,file_list):
     # Now, you can access the single column DataFrame
     single_column_df = df['points']
     # Convert the DataFrame column to a list
-    ignitions_points = single_column_df.tolist()
-        
+    ignitions_points_aux = single_column_df.tolist()
+    ignitions_points = []
+    
     cmdoutput1 = os.listdir(msg_folder)
     if ".DS_Store" in cmdoutput1:
         idx = cmdoutput1.index('.DS_Store')
@@ -41,12 +42,12 @@ def read_sims(forest_path,results_path,nsims,file_list):
         del cmdoutput1[idx]
     
     avail = list(AvailSet)
-    burned = dict.fromkeys(AvailSet,0)
 
     scar_graphs = []
     contador_sims = 1
     for f in range(1, nsims+1):
-    
+        
+        ignitions_points.append(ignitions_points_aux[f-1])
         file = str(f).zfill(2) + '.csv'
         H = nx.read_edgelist(path = msg_path + file,
                                 delimiter=',',
@@ -61,7 +62,7 @@ def read_sims(forest_path,results_path,nsims,file_list):
         scar_graphs.append(H)
         contador_sims = contador_sims+1
     
-    params = [NCells,file_list,ignitions_points,avail,scar_graphs]
+    params = [NCells,ignitions_points,avail,scar_graphs]
         
     return params
 
