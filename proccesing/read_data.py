@@ -56,10 +56,6 @@ def read_sims(forest_path,results_path,nsims):
                                 nodetype = int,
                                 data = [('time', float), ('ros', float)])
 
-
-        if contador_sims == nsims:
-            break
-
         scar_graphs.append(H)
         contador_sims = contador_sims+1
     
