@@ -3,8 +3,9 @@ The codes found here correlates to specific versions of the simulator and can be
 
 ## Contents
 ### Proccesing
-Proccesing folder contains the codes to procces the results obtained from C2F simulations. \
-  -read_data: read forest and simulations data to feed optimization procedures \
-  -main: call functions
+Proccesing folder contains the codes to procces the results obtained from C2F simulations.
+  - read_data: read forest and simulations data to feed optimization procedures.
+  - main: call functions.
+  - optimization: stochastic optimization model using gurobi.
 ### Sample test
 Canadian forest and simulation results for testing purposes
