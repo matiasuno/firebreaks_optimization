@@ -4,8 +4,8 @@ from plot import *
 
 
 ## DATA READING
-forest_example = "C:/Users/matia/source_win/firebreaks_optimization/sample_test/data/CanadianFBP/400cellsC1"
-results_example = "C:/Users/matia/source_win/firebreaks_optimization/sample_test/results/400cellsC1"
+forest_example = "C:/Users/matia/Documents/source_win/firebreaks_optimization/sample_test/data/CanadianFBP/400cellsC1"
+results_example = "C:/Users/matia/Documents/source_win/firebreaks_optimization/sample_test/results/400cellsC1"
 
 forest_path = forest_example
 results_path = results_example
@@ -14,9 +14,11 @@ nsims = 10
 params = read_sims(forest_path,results_path,nsims)
 NCells,ignitions_points,avail,scar_graphs = params
 adjacency_matrix = adjacency(20,20)
+print(adjacency_matrix[1])
+
 
 ## OPTIMIZATION MODEL
-i = [0.05]
+i = [0.03]
 for intensity in i:
     print("-"*20,"Solving model","-"*20)
     #intensity = 0

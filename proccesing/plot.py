@@ -9,7 +9,7 @@ def plot_squared_graph(prob_map, highlight_nodes=[]):
 
     Parameters:
         prob_map (2D array): Probability map for coloring the squares.
-        highlight_nodes (list of tuples): List of node coordinates to highlight.
+        highlight_nodes (list of integers): List of cell numbers to highlight.
     """
     size = len(prob_map)
     fig, ax = plt.subplots()
@@ -22,7 +22,8 @@ def plot_squared_graph(prob_map, highlight_nodes=[]):
     
     # Highlight specific nodes with a circle
     for node in highlight_nodes:
-        x, y = node
+        x = (node - 1) % size
+        y = (node - 1) // size
         circle = Circle((x + 0.5, y + 0.5), 0.4, color='red', fill=False, linewidth=2)
         ax.add_patch(circle)
     
@@ -57,8 +58,16 @@ def adjacency(rows, columns):
             adjacent_cells = []
             if row > 0:
                 adjacent_cells.append(cell_number - columns)  # Up
+                if col > 0:
+                    adjacent_cells.append(cell_number - columns - 1)  # Up Left
+                if col < columns - 1:
+                    adjacent_cells.append(cell_number - columns + 1)  # Up Right
             if row < rows - 1:
                 adjacent_cells.append(cell_number + columns)  # Down
+                if col > 0:
+                    adjacent_cells.append(cell_number + columns - 1)  # Down Left
+                if col < columns - 1:
+                    adjacent_cells.append(cell_number + columns + 1)  # Down Right
             if col > 0:
                 adjacent_cells.append(cell_number - 1)  # Left
             if col < columns - 1:
@@ -68,9 +77,3 @@ def adjacency(rows, columns):
             cell_number += 1
 
     return grid_dict
-
-# Example usage:
-#rows = 5
-#columns = 5
-#grid_dict = create_grid_dictionary(rows, columns)
-#print(grid_dict)
