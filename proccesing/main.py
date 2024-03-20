@@ -1,5 +1,6 @@
 from read_data import *
 from optimization import *
+from plot import *
 
 
 ## DATA READING
@@ -12,10 +13,10 @@ nsims = 10
 
 params = read_sims(forest_path,results_path,nsims)
 NCells,ignitions_points,avail,scar_graphs = params
-
+adjacency_matrix = adjacency(20,20)
 
 ## OPTIMIZATION MODEL
-i = [0,0.01,0.03,0.05,0.07]
+i = [0.05]
 for intensity in i:
     print("-"*20,"Solving model","-"*20)
     #intensity = 0
@@ -28,3 +29,8 @@ for intensity in i:
     print("ev: ",expected_value)
     print("firebreaks: ",fb_list)
     print("total burned forest by scenario: ", lista_aux)
+
+    # Example usage
+    prob_map = np.random.rand(20, 20)  # Example probability map
+    highlight_nodes = fb_list  # Example highlight node coordinates
+    plot_squared_graph(prob_map, highlight_nodes)
