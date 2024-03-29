@@ -3,7 +3,7 @@ from gurobipy import GRB
 import plot as plot
 
 
-def model(intensity,nsims,gap,tlimit,w_parameter,params,verbose):
+def model(intensity,nsims,gap,tlimit,w_parameter,params,linked,solution,verbose):
 
     adjacency = plot.adjacency(20,20)
 
@@ -20,11 +20,15 @@ def model(intensity,nsims,gap,tlimit,w_parameter,params,verbose):
     #model variables
     x = model.addVars(nodos, sims, vtype=GRB.BINARY)
     y = model.addVars(nodos, vtype=GRB.BINARY)
-    z = model.addVars(nodos,nodos,vtype=GRB.BINARY)
+    eta = model.addVars(sims, vtype=GRB.CONTINUOUS, lb=0)
+    phi = model.addVar(vtype=GRB.CONTINUOUS, lb =0)
+    #z = model.addVars(nodos,nodos,vtype=GRB.BINARY)
     
     #model objective function
+    lmbda = 0.5
     f_esperanza = gp.quicksum(x[n,s]*w_parameter for n in nodos for s in sims)/nsims
-    model.setObjective(f_esperanza, GRB.MINIMIZE)
+    f_cvar = phi+(1/(1-0.9))*gp.quicksum(eta[s] for s in sims)/nsims
+    model.setObjective(lmbda*f_esperanza+(1-lmbda)*f_cvar, GRB.MINIMIZE)
     
     #firebreak intensity constraint
     model.addConstr(gp.quicksum(y[n] for n in nodos) == cortafuegos)
@@ -42,22 +46,35 @@ def model(intensity,nsims,gap,tlimit,w_parameter,params,verbose):
         point = ignitions_points[s-1]
         model.addConstr(x[point,s] == 1)
 
-    for n in nodos:
-        model.addConstr(gp.quicksum(z[n,a] for a in adjacency[n]) >= y[n])
-        model.addConstr(gp.quicksum(z[n,a] for a in adjacency[n]) <= 2)
-        for a in adjacency[n]:
-            model.addConstr(y[n] >= z[n,a])
-            model.addConstr(y[a] >= z[n,a])
-            model.addConstr(z[n,a] >= y[n]+y[a]-1)
-            model.addConstr(z[n,a] <= y[n])
-            model.addConstr(z[n,a] <= y[a])
+    #starting solution
+    if solution:
+        for n in solution:
+            model.addConstr(y[n] == 1)
 
-    for n in nodos:
-        for a in nodos:
-            if a not in adjacency[n]:
-                model.addConstr(z[n,a] == 0)
+    #CVaR constraint
+    for s in sims:
+        model.addConstr(gp.quicksum(x[n,s] for n in nodos)-phi <= eta[s])
 
-    model.addConstr(gp.quicksum(z[n,a] for a in nodos for n in nodos) == link_limit)
+    '''
+    #linking constraints
+    if linked == True:
+        for n in nodos:
+            model.addConstr(gp.quicksum(z[n,a] for a in adjacency[n]) >= y[n])
+            model.addConstr(gp.quicksum(z[n,a] for a in adjacency[n]) <= 2)
+            for a in adjacency[n]:
+                model.addConstr(y[n] >= z[n,a])
+                model.addConstr(y[a] >= z[n,a])
+                model.addConstr(z[n,a] >= y[n]+y[a]-1)
+                model.addConstr(z[n,a] <= y[n])
+                model.addConstr(z[n,a] <= y[a])
+
+        for n in nodos:
+            for a in nodos:
+                if a not in adjacency[n]:
+                    model.addConstr(z[n,a] == 0)
+
+        model.addConstr(gp.quicksum(z[n,a] for a in nodos for n in nodos) == link_limit)
+    '''
     
     #extra options
     model.Params.MIPGap = gap
@@ -77,17 +94,20 @@ def model(intensity,nsims,gap,tlimit,w_parameter,params,verbose):
     lista_aux=[]
     for s in sims:
         suma = sum(x[n,s].x for n in nodos)
-        lista_aux.append(suma)
+        lista_aux.append(suma/NCells)
         
     ev = sum(lista_aux)/len(lista_aux)
     #lista_aux.sort(reverse=True)
     
-    print("link constraint: ")
-    for n in nodos:
-        for a in nodos:
-            if z[n,a].x >= 0.1:
-                print("constraint: ", n, a, z[n,a].x)
-    print(sum(z[n,a].x for n in nodos for a in nodos))
+    '''
+    if linked == True:
+        print("link constraint: ")
+        for n in nodos:
+            for a in nodos:
+                if z[n,a].x >= 0.1:
+                    print("constraint: ", n, a, z[n,a].x)
+        print(sum(z[n,a].x for n in nodos for a in nodos))
+    '''
 
     contador_cfuegos=0
     fb_list = []
