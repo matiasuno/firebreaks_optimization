@@ -3,15 +3,15 @@ from gurobipy import GRB
 import plot as plot
 
 
-def model(intensity,nsims,gap,tlimit,w_parameter,params,linked,solution,verbose):
+def model(intensity,nsims,gap,tlimit,w_parameter,lmbda,params,solution,verbose):
 
-    adjacency = plot.adjacency(20,20)
+    #adjacency = plot.adjacency(20,20)
 
     #forest and simulation data
     NCells,ignitions_points,nodos,scar_graphs = params
     sims = list(range(1,nsims+1))
     cortafuegos = int(NCells*intensity)
-    link_limit = 2*cortafuegos-2
+    #link_limit = 2*cortafuegos-2
 
     #optimization parameters
     model = gp.Model()
@@ -25,7 +25,7 @@ def model(intensity,nsims,gap,tlimit,w_parameter,params,linked,solution,verbose)
     #z = model.addVars(nodos,nodos,vtype=GRB.BINARY)
     
     #model objective function
-    lmbda = 0.5
+    #lmbda = 0.5
     f_esperanza = gp.quicksum(x[n,s]*w_parameter for n in nodos for s in sims)/nsims
     f_cvar = phi+(1/(1-0.9))*gp.quicksum(eta[s] for s in sims)/nsims
     model.setObjective(lmbda*f_esperanza+(1-lmbda)*f_cvar, GRB.MINIMIZE)
@@ -54,27 +54,6 @@ def model(intensity,nsims,gap,tlimit,w_parameter,params,linked,solution,verbose)
     #CVaR constraint
     for s in sims:
         model.addConstr(gp.quicksum(x[n,s] for n in nodos)-phi <= eta[s])
-
-    '''
-    #linking constraints
-    if linked == True:
-        for n in nodos:
-            model.addConstr(gp.quicksum(z[n,a] for a in adjacency[n]) >= y[n])
-            model.addConstr(gp.quicksum(z[n,a] for a in adjacency[n]) <= 2)
-            for a in adjacency[n]:
-                model.addConstr(y[n] >= z[n,a])
-                model.addConstr(y[a] >= z[n,a])
-                model.addConstr(z[n,a] >= y[n]+y[a]-1)
-                model.addConstr(z[n,a] <= y[n])
-                model.addConstr(z[n,a] <= y[a])
-
-        for n in nodos:
-            for a in nodos:
-                if a not in adjacency[n]:
-                    model.addConstr(z[n,a] == 0)
-
-        model.addConstr(gp.quicksum(z[n,a] for a in nodos for n in nodos) == link_limit)
-    '''
     
     #extra options
     model.Params.MIPGap = gap
@@ -98,16 +77,6 @@ def model(intensity,nsims,gap,tlimit,w_parameter,params,linked,solution,verbose)
         
     ev = sum(lista_aux)/len(lista_aux)
     #lista_aux.sort(reverse=True)
-    
-    '''
-    if linked == True:
-        print("link constraint: ")
-        for n in nodos:
-            for a in nodos:
-                if z[n,a].x >= 0.1:
-                    print("constraint: ", n, a, z[n,a].x)
-        print(sum(z[n,a].x for n in nodos for a in nodos))
-    '''
 
     contador_cfuegos=0
     fb_list = []

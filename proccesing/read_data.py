@@ -3,6 +3,7 @@ import pandas as pd
 import ReadDataPrometheus
 import os
 import numpy as np
+from heapq import nlargest
 
 def read_sims(forest_path,results_path,nsims,total_nsims):
 
@@ -88,9 +89,8 @@ def harvested(folder,l): #funcion que pasa una lista de elementos a un archivo .
     df = pd.DataFrame(datos,columns=cols) #creo el dataframe
     df.to_csv(folder,index=False)
 
-def dpv(graphs,ncells,bp):
+def get_dpv(graphs,ncells,risk_values,intensity):
     dpv_dic = dict.fromkeys(list(range(1,ncells+1)),0)
-
     for g in graphs:
         g_nodes = g.nodes()
         for n in g_nodes:
@@ -99,8 +99,11 @@ def dpv(graphs,ncells,bp):
                 dpv_n = 0
                 #print(ego_nodes)
                 for j in ego_nodes:
-                    dpv_n = dpv_n+bp[j]
-                
-                
+                    dpv_n = dpv_n+risk_values[j]
         dpv_dic[n] = dpv_dic[n]+dpv_n
-    return dpv_dic
+    dpv_sol = nlargest(int(ncells*intensity), dpv_dic, key=dpv_dic.get)  
+    return dpv_sol
+
+def get_bp(bp,ncells,intensity):
+    bp_sol = nlargest(int(ncells*intensity), bp, key=bp.get)
+    return bp_sol
