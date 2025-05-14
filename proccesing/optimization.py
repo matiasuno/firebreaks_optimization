@@ -1,17 +1,14 @@
 import gurobipy as gp
 from gurobipy import GRB
-import plot as plot
 
 
-def model(intensity,nsims,gap,tlimit,w_parameter,lmbda,params,solution,verbose):
-
-    #adjacency = plot.adjacency(20,20)
+def model(params, n_nodos, ignitions_points, scar_graphs):
 
     #forest and simulation data
-    NCells,ignitions_points,nodos,scar_graphs = params
+    intensity, nsims, gap, tlimit, lmbda, solution, verbose = params
     sims = list(range(1,nsims+1))
-    cortafuegos = int(NCells*intensity)
-    #link_limit = 2*cortafuegos-2
+    cortafuegos = int(n_nodos*intensity)
+    nodos = list(range(1,n_nodos+1))
 
     #optimization parameters
     model = gp.Model()
@@ -25,8 +22,7 @@ def model(intensity,nsims,gap,tlimit,w_parameter,lmbda,params,solution,verbose):
     #z = model.addVars(nodos,nodos,vtype=GRB.BINARY)
     
     #model objective function
-    #lmbda = 0.5
-    f_esperanza = gp.quicksum(x[n,s]*w_parameter for n in nodos for s in sims)/nsims
+    f_esperanza = gp.quicksum(x[n,s] for n in nodos for s in sims)/nsims
     f_cvar = phi+(1/(1-0.9))*gp.quicksum(eta[s] for s in sims)/nsims
     model.setObjective(lmbda*f_esperanza+(1-lmbda)*f_cvar, GRB.MINIMIZE)
     
@@ -73,7 +69,7 @@ def model(intensity,nsims,gap,tlimit,w_parameter,lmbda,params,solution,verbose):
     lista_aux=[]
     for s in sims:
         suma = sum(x[n,s].x for n in nodos)
-        lista_aux.append(suma/NCells)
+        lista_aux.append(suma/n_nodos)
         
     ev = sum(lista_aux)/len(lista_aux)
     #lista_aux.sort(reverse=True)

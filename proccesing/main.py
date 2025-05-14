@@ -1,45 +1,40 @@
-from read_data import *
-from optimization import *
-from plot import *
+from read_data import read_asc, read_ignition_points, read_messages, extract_points
+from optimization import model
+from evaluation import c2f_evaluation
+import os
 
-## DATA READING
-forest_example = "C:/Users/matia/source_win/firebreaks_optimization/sample_test/data/CanadianFBP/Sub40"
-results_example = "C:/Users/matia/source_win/firebreaks_optimization/sample_test/Sub40"
-harvest_folder = "C:/Users/matia/source_win/firebreaks_optimization/harvest/"
+fuels = "/home/matias/Documents/firebreaks_optimization/data/CanadianFBP/Sub40/fuels.asc"
+forest = "/home/matias/Documents/firebreaks_optimization/data/CanadianFBP/Sub40"
+ev_output = "/home/matias/Documents/firebreaks_optimization/results/results_c/"
+ignitions = "/home/matias/Documents/firebreaks_optimization/results/Sub40c/IgnitionsHistory/replication.csv"
+msg_path = "/home/matias/Documents/firebreaks_optimization/results/Sub40c/Messages/"
 
-forest_path = forest_example
-results_path = results_example
-nsims = 50
-total_nsims = 1000
+header,data,nodos = read_asc(fuels)
+scars_graphs = read_messages(msg_path)
+ig_points = extract_points(ignitions)
 
-params = read_sims(forest_path,results_path,nsims,total_nsims)
-NCells,ignitions_points,avail,scar_graphs,bp = params
+i = 0.01
+nsims = 100
+gap = 0.01
+tlimit = 60*5
+lmbda = 1
+solution = None
+verbose = 1
+ev_nsims = 1000
 
+for i in [0,0.01,0.03,0.05]:
+    print("i:", i)
 
-## OPTIMIZATION MODEL
-contador = 1
-sol = []
-intensities = [0,0.01]
-scars = []
-l = 1
-for i in intensities:
-    print("-"*20,"Solving model","-"*20)
-    #intensity = 0
-    gap = 0
-    tlimit = 1800
-    w_parameter = 1
-    linked = False
-    solution = []
-    verbose = 0
-    
-    fo, fb_list, expected_value, lista_aux = model(i,nsims,gap,tlimit,w_parameter,l,params[0:-1],sol,verbose)
-    print("alpha=",i,"EV:",expected_value)
+    # Solve the optimisation model
+    params = [i, nsims, gap, tlimit, lmbda, solution, verbose]
+    fo, fb_list, ev, lista_aux = model(params, nodos, ig_points, scars_graphs)
+    #print("ev model:", ev)
 
-    scars.append(lista_aux)
-    # Solution visualization
-    prob_map = np.random.rand(40, 40)  # Example probability map
-    highlight_nodes = fb_list  # Example highlight node coordinates
-    plot_squared_graph(prob_map, highlight_nodes)
-
-    #harvested(harvest_folder+'harvest'+str(i)+'.csv',fb_list)
-    contador = contador+1
+    # Carry out the C2F evaluation
+    #params = [0, ev_nsims, gap, tlimit, lmbda, solution, verbose]
+    ev_output_i = f"{ev_output}i_{i}/"
+    c2f_evaluation(forest, ev_output_i, fuels, ev_nsims, fb_list)
+    #scars2 = read_messages(f'{ev_output}Messages/')
+    #points2 = extract_points(f'{ev_output}IgnitionsHistory/replication.csv')
+    #fo,fb_list,ev,lista_aux = model(params, nodos, points2, scars2)
+    #print("ev eval:", ev)
