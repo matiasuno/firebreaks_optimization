@@ -1,13 +1,14 @@
-from read_data import read_asc, read_ignition_points, read_messages, extract_points
+from read_data import read_asc, read_messages, extract_points
 from optimization import model
 from evaluation import c2f_evaluation
 import os
 
-fuels = "/home/matias/Documents/firebreaks_optimization/data/CanadianFBP/Sub40/fuels.asc"
-forest = "/home/matias/Documents/firebreaks_optimization/data/CanadianFBP/Sub40"
-ev_output = "/home/matias/Documents/firebreaks_optimization/results/results_c/"
-ignitions = "/home/matias/Documents/firebreaks_optimization/results/Sub40c/IgnitionsHistory/replication.csv"
-msg_path = "/home/matias/Documents/firebreaks_optimization/results/Sub40c/Messages/"
+folder_input = "/Users/matiasvilches/Documents/F2A/source/"
+fuels = f"{folder_input}firebreaks_optimization/data/CanadianFBP/Sub40/fuels.asc"
+forest = f"{folder_input}firebreaks_optimization/data/CanadianFBP/Sub40"
+ev_output = f"{folder_input}firebreaks_optimization/results/results_c/"
+ignitions = f"{folder_input}firebreaks_optimization/results/Sub40c/IgnitionsHistory/replication.csv"
+msg_path = f"{folder_input}firebreaks_optimization/results/Sub40c/Messages/"
 
 header,data,nodos = read_asc(fuels)
 scars_graphs = read_messages(msg_path)
@@ -21,8 +22,9 @@ lmbda = 1
 solution = None
 verbose = 1
 ev_nsims = 1000
+nthreads = 1
 
-for i in [0,0.01,0.03,0.05]:
+for i in [0]:#,0.01,0.03,0.05]:
     print("i:", i)
 
     # Solve the optimisation model

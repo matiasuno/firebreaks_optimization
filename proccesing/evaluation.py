@@ -2,7 +2,7 @@ import subprocess as subp
 import os
 from read_data import read_asc, write_treatment,harvested
 
-def c2f_evaluation(forest,output,fuels,nsims,fb_sol):
+def c2f_evaluation(forest,output,fuels,nsims,fb_sol,nthreads):
 
     print("simulating")
 
@@ -12,13 +12,12 @@ def c2f_evaluation(forest,output,fuels,nsims,fb_sol):
     input_folder = f'--input-instance-folder {forest}' 
     output_folder = f'--output-folder {output}'
     nsims = f'--nsims {nsims}'
-    nthreads = '--nthreads 28'
+    nthreads = f'--nthreads {nthreads}'
     weather_opt = '--nweathers 86 --weather random'
     seed = '--seed 333'
     extra = '--ignitionsLog'
     outputs = '--output-messages'
     ignitions = '--ignitions-random'
-
 
     #SAVE FIREBREAK SOLUTIONS
     try:
