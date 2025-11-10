@@ -1,10 +1,29 @@
 from gurobipy import GRB
 import gurobipy as gp
-from operations_csv import get_all_messages, write_treatment_csv
-from operations_raster import read_raster, write_treatment_raster
 import networkx as nx
+import csv
+import os
 
-def model(params, n_nodos, scar_graphs, lmbda, n_cfuegos=None):
+def save_results(results, header, output_path="results.csv"):
+    file_exists = os.path.isfile(output_path)
+
+    # open file in append mode
+    with open(output_path, mode="a", newline="", encoding="utf-8") as file:
+        writer = csv.writer(file)
+        # write header only if file does not exist yet
+        if not file_exists:
+            writer.writerow(header)
+        writer.writerows(results)
+
+def get_wc(lista_aux, alpha=0.9):
+    """Calculate the Conditional Value at Risk (CVaR) at level alpha."""
+    lista_aux.sort()
+    index = int(len(lista_aux)*alpha)
+    wc = sum(lista_aux[index:])/(len(lista_aux)*(1-alpha))
+    return round(wc,3)
+
+
+def mip_model(params, n_nodos, scar_graphs, lmbda, n_cfuegos=None):
 
     #forest and simulation data
     intensity, nsims, gap, tlimit = params
@@ -15,13 +34,12 @@ def model(params, n_nodos, scar_graphs, lmbda, n_cfuegos=None):
     if n_cfuegos:
         cortafuegos = n_cfuegos
 
-    print("cortafuegos",cortafuegos)
+    #print("cortafuegos",cortafuegos)
 
     #optimization parameters
     model = gp.Model()
     model.setParam("OutputFlag", 1)
 
-        
     #model variables
     x = model.addVars(nodos, sims, vtype=GRB.BINARY)
     y = model.addVars(nodos, vtype=GRB.BINARY)
@@ -71,12 +89,15 @@ def model(params, n_nodos, scar_graphs, lmbda, n_cfuegos=None):
     gap = model.MIPGap
     gap = round(gap,3)
     fo = round(model.ObjVal,3)
+    time = model.Runtime
+    time = round(time/60,3) #minutes
     
     lista_aux=[]
     for s in sims:
         suma = sum(x[n,s].x for n in nodos)
         lista_aux.append(suma/n_nodos)
     ev = sum(lista_aux)/len(lista_aux)
+    ev = round(ev,3)
 
     contador_cfuegos=0
     fb_list = []
@@ -84,28 +105,5 @@ def model(params, n_nodos, scar_graphs, lmbda, n_cfuegos=None):
         if y[n].x > 0.9:
             contador_cfuegos = contador_cfuegos+1
             fb_list.append(n)
-    return fo, fb_list, ev, lista_aux
-
-
-if __name__ == "__main__":
     
-    forest = "sub40"
-    ruta_base = "/Users/matiasvilches/Documents/F2A/papers/two_stage"
-    msg_path = f"{ruta_base}/sims/{forest}/Messages/"
-    fuels = f"{ruta_base}/forest/{forest}/fuels.asc"
-    
-    data, profile, n_nodos = read_raster(fuels)
-    scar_graphs = get_all_messages(msg_path)
-
-    intensity = 0.05
-    time_limit = 3600
-    params = (intensity, 1000, 0.01, time_limit) #intensity, nsims, gap, tlimit
-    lmbda = 1
-
-    treatment_output_raster = f"{ruta_base}/results/{forest}/firebreaks_{forest}_i{intensity}.tif"
-    treatment_output_csv = f"{ruta_base}/results/{forest}/firebreaks_{forest}_i{intensity}.csv"
-
-    fo, fb_list, ev, lista_aux = model(params, n_nodos, scar_graphs, lmbda, n_cfuegos=None)
-
-    write_treatment_raster(fuels,fb_list,treatment_output_raster)
-    write_treatment_csv(treatment_output_csv,fb_list)
+    return fo, fb_list, ev, lista_aux, gap, time

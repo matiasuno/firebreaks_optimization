@@ -123,7 +123,7 @@ def get_all_messages(msg_folder):
         msg_path = os.path.join(msg_folder, file)
         H = get_graph(msg_path)
         messages.append(H)
-        print(f"Leído {file}", i)
+        #print(f"Leído {file}", i)
 
     return messages
 
