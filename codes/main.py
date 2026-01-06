@@ -4,11 +4,12 @@ from two_stage_model import mip_model, save_results, get_wc
 
 if __name__ == "__main__":
     
-    #ruta_base = "/Users/matiasvilches/Documents/F2A/source/two_stage"
-    ruta_base = "/home/matias/Documents/source/two_stage"
+    ruta_base = "/Users/matiasvilches/Documents/F2A/papers/two_stage"
+    #ruta_base = "/home/matias/Documents/source/two_stage"
     forest_list = ["sub20", "sub40", "sub100"]
     header = ["forest", "nsims","intensity", "lambda", "instance", "time","gap", "fo", "ev","ws",]
     results_output_csv = f"{ruta_base}/results/summary_results.csv"
+    output_flag = 1  # 0 to disable Gurobi output, 1 to enable
 
     time_limit = 3600
     time_limit = 300
@@ -16,16 +17,17 @@ if __name__ == "__main__":
     lambda_list = [1,0.5,0]
     intensity_list = [0.01,0.02,0.03,0.04,0.05]
     nsims_list = [20,60,100,140,180]
-    instances = [i for i in range(1,6)]
+    n_instances = 5
+    instances = [i for i in range(1,1+n_instances)]
 
-    """
-    forest_list = ["sub40"]
-    lambda_list = [1]
-    intensity_list = [0.02]
+    #"""
+    forest_list = ["sub20"]
+    lambda_list = [1,0.5,0]
+    intensity_list = [0.01]
     nsims_list = [100]
     n_instances = 1
     instances = [i for i in range(1,1+n_instances)]
-    """
+    #"""
 
     total_experiments = len(forest_list)*len(nsims_list)*len(lambda_list)*len(intensity_list)*len(instances)
 
@@ -49,10 +51,11 @@ if __name__ == "__main__":
                         treatment_output_raster = f"{ruta_base}/results/{forest}/firebreaks_{forest}_i{intensity}.tif"
                         treatment_output_csv = f"{ruta_base}/results/{forest}/{forest}_i{intensity}_l{lmda}_inst{i}_n{nsims}.csv"
 
-                        fo, fb_list, ev, lista_aux, gap, time = mip_model(params, n_nodos, scar_graphs, lmda, n_cfuegos=None)
+                        fo, fb_list, ev, lista_aux, gap, time = mip_model(params, n_nodos, scar_graphs, lmda, n_cfuegos=None,output_flag=output_flag)
                         wc = get_wc(lista_aux, alpha=0.1)
 
                         print(ev)
+                        print(wc)
 
                         write_treatment_csv(treatment_output_csv,fb_list)
 

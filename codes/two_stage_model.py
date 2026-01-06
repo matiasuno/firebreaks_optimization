@@ -16,14 +16,14 @@ def save_results(results, header, output_path="results.csv"):
         writer.writerows(results)
 
 def get_wc(lista_aux, alpha=0.9):
-    """Calculate the Conditional Value at Risk (CVaR) at level alpha."""
+    """Calculate mean of worst alpha scenarios."""
     lista_aux.sort()
-    index = int(len(lista_aux)*alpha)
-    wc = sum(lista_aux[index:])/(len(lista_aux)*(1-alpha))
+    n_last = int(len(lista_aux)*alpha)
+    wc = sum(lista_aux[-n_last:])/(len(lista_aux)*(1-alpha))
     return round(wc,3)
 
 
-def mip_model(params, n_nodos, scar_graphs, lmbda, n_cfuegos=None):
+def mip_model(params, n_nodos, scar_graphs, lmbda, n_cfuegos=None, output_flag=False):
 
     #forest and simulation data
     intensity, nsims, gap, tlimit = params
@@ -38,7 +38,7 @@ def mip_model(params, n_nodos, scar_graphs, lmbda, n_cfuegos=None):
 
     #optimization parameters
     model = gp.Model()
-    model.setParam("OutputFlag", 1)
+    model.setParam("OutputFlag", output_flag)
 
     #model variables
     x = model.addVars(nodos, sims, vtype=GRB.BINARY)
