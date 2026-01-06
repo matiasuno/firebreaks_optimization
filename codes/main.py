@@ -1,6 +1,7 @@
 from operations_csv import get_all_messages, write_treatment_csv
 from operations_raster import read_raster, write_treatment_raster
 from two_stage_model import mip_model, save_results, get_wc
+import os
 
 if __name__ == "__main__":
     
@@ -33,6 +34,9 @@ if __name__ == "__main__":
 
     experiment_counter = 0
     for forest in forest_list:
+        forest_dir = f"{ruta_base}/results/{forest}/"
+        if not os.path.exists(forest_dir):
+            os.makedirs(forest_dir)
         for nsims in nsims_list:
             for lmda in lambda_list:
                 for intensity in intensity_list:
